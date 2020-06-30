@@ -1,0 +1,39 @@
+{
+  "name": "linkd",
+  "version": "1.0.0",
+  "description": "A small link shortening application.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itshaydendev/linkd.git"
+  },
+  "author": "Hayden Young <hayden@itshayden.dev> (https://itshayden.dev)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/itshaydendev/linkd/issues"
+  },
+  "homepage": "https://github.com/itshaydendev/linkd#readme",
+  "devDependencies": {
+    "@types/koa": "^2.11.3",
+    "@types/koa-bodyparser": "^4.3.0",
+    "@types/koa__cors": "^3.0.1",
+    "@types/koa__router": "^8.0.2",
+    "@types/nanoid": "^2.1.0",
+    "@types/node": "^14.0.14",
+    "typescript": "^3.9.5"
+  },
+  "dependencies": {
+    "@koa/cors": "^3.1.0",
+    "@koa/router": "^9.1.0",
+    "class-validator": "^0.12.2",
+    "koa": "^2.13.0",
+    "koa-bodyparser": "^4.3.0",
+    "nanoid": "^3.1.10",
+    "pg": "^8.2.1",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "^0.2.25"
+  }
+}

@@ -1,2 +1,2 @@
 # linkd
-A GraphQL URL shortener written in TypeScript
+A small URL shortener written in TypeScript
