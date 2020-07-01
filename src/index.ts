@@ -56,11 +56,11 @@ router
       newUrl.url = url;
       newUrl.accessKey = nanoid(16);
       newUrl.save();
-
+      
       ctx.status = 201;
       ctx.body = {
         message: 'Short URL created.',
-        data: { ...newUrl },
+        data: newUrl,
         url: `${baseUrl}/${newUrl.alias}`
       };
     } catch (e) {
