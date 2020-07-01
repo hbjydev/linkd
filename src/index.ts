@@ -3,36 +3,8 @@ import Koa from 'koa';
 import Router from '@koa/router';
 import cors from '@koa/cors';
 import bodyParser from 'koa-bodyparser';
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
 import { nanoid } from 'nanoid';
-
-// TODO add documentation & split this into its own file
-@Entity()
-class URL extends BaseEntity {
-  
-  @PrimaryGeneratedColumn()
-  public id!: number;
-
-  @Column({ unique: true, nullable: false })
-  public alias!: string;
-
-  @Column({ nullable: false })
-  public url!: string;
-
-  @Column({ unique: true, nullable: false })
-  public accessKey!: string;
-
-  @CreateDateColumn()
-  public createdAt!: Date;
-
-  @UpdateDateColumn()
-  public updatedAt!: Date;
-
-  // TODO investigate typeorm soft delete
-  @DeleteDateColumn()
-  public deletedAt!: Date;
-
-}
+import URL from './url';
 
 const app = new Koa();
 const port = parseInt(process.env.PORT ?? '3000', 10);
