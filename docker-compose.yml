@@ -1,6 +1,16 @@
 version: '3'
 
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    environment:
+      DB_URI: postgres://linkd:linkd@db/linkd
+      BASE_URL: http://dev.lcl
+
   db:
     image: postgres:latest
     environment:
