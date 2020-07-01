@@ -23,6 +23,9 @@ export default class URL extends BaseEntity {
   @Column({ unique: true, nullable: false })
   public accessKey!: string;
 
+  @Column({ default: 0 })
+  public hits!: number;
+
   @CreateDateColumn()
   public createdAt!: Date;
 

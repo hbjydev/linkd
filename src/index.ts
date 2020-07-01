@@ -4,64 +4,110 @@ import Router from '@koa/router';
 import cors from '@koa/cors';
 import bodyParser from 'koa-bodyparser';
 import { nanoid } from 'nanoid';
+import {createConnection} from 'typeorm';
 import URL from './url';
+import { LinkdNotFound, LinkdAlreadyExists } from './errors';
 
 const app = new Koa();
 const port = parseInt(process.env.PORT ?? '3000', 10);
+const baseUrl = process.env.BASE_URL ?? 'https://linkd.pw';
 
-// TODO init typeorm
+createConnection({
+  type: 'postgres',
+  url: process.env.DB_URI ?? 'postgres://linkd:linkd@localhost:5432/linkd',
+  entities: [ URL ],
+  synchronize: true
+}).then(() => {
+  console.log('db   => connection opened to database');
+});
 
 app.use(bodyParser());
 
-const router = new Router({ prefix: '/' });
+const router = new Router();
 
 // TODO create a more descriptive route
-router.get('/', (ctx) => {
-  ctx.body = {
-    message: 'Welcome to linkd'
-  };
-});
-
-// TODO fix routing
-router.post('/url', async (ctx) => {
-  const url = ctx.request.body.url;
-  if (!url) {
-    ctx.status = 400;
+router
+  .get('root', '/', (ctx) => {
     ctx.body = {
-      message: 'Field `url` is required.',
-      data: {}
+      message: 'Welcome to linkd'
     };
-    return;
-  }
+  })
+  .post('new', '/url', async (ctx) => {
+    const url = ctx.request.body.url;
+    if (!url) {
+      ctx.status = 400;
+      ctx.body = {
+        message: 'Field `url` is required.',
+        data: {}
+      };
+      return;
+    }
 
-  const alias = ctx.request.body.url ?? nanoid(5);
+    const alias = ctx.request.body.alias ?? nanoid(5);
 
-  try {
-    const newUrl = new URL();
-    newUrl.alias = alias;
-    newUrl.url = url;
-    await newUrl.save();
+    try {
+      const existing = await URL.find({ alias });
+      if (existing.length > 0) {
+        throw new LinkdAlreadyExists();
+      }
 
-    ctx.status = 201;
-    ctx.body = {
-      message: 'Short URL created.',
-      data: newUrl
-    };
-  } catch (e) {
-    // TODO add error catching based on type
-    const message = 'Whoops! Something went wrong on our end!';
-    ctx.status = e.statusCode ?? 500;
-    let stack = {};
-    if (process.env.NODE_ENV == 'production') stack = e.stack;
+      const newUrl = new URL();
+      newUrl.alias = alias;
+      newUrl.url = url;
+      newUrl.accessKey = nanoid(16);
+      newUrl.save();
 
-    ctx.body = {
-      ...stack,
-      message
-    };
-  }
-});
+      ctx.status = 201;
+      ctx.body = {
+        message: 'Short URL created.',
+        data: { ...newUrl },
+        url: `${baseUrl}/${newUrl.alias}`
+      };
+    } catch (e) {
+      let message = 'Whoops! Something went wrong on our end!';
+      if (e instanceof LinkdAlreadyExists) {
+        message = "A link with that alias/ID already exists!";
+      }
 
-// TODO add redirect based on /:nanoid
+      let stack = {};
+      if (process.env.NODE_ENV == 'production') stack = { stack: e.stack };
+
+      ctx.status = e.statusCode ?? 500;
+      ctx.body = {
+        ...stack,
+        message
+      };
+   }
+  })
+  .get('/:alias', async (ctx) => {
+    const { alias } = ctx.params;
+
+    try {
+      const urls = await URL.find({ alias });
+      if(urls.length == 0) {
+        throw new LinkdNotFound(alias);
+      }
+
+      urls[0].hits += 1;
+      urls[0].save();
+
+      return ctx.redirect(urls[0].url);
+    } catch (e) {
+      let message = 'Whoops! Something went wrong on our end!';
+      if (e instanceof LinkdNotFound) {
+        message = "A link with that alias/ID was not found!";
+      }
+
+      let stack = {};
+      if (process.env.NODE_ENV == 'production') stack = { stack: e.stack };
+
+      ctx.status = e.statusCode ?? 500;
+      ctx.body = {
+        ...stack,
+        message
+      };
+    }
+  });
 
 // TODO allow deleting existing urls based on a provided owner key
 
