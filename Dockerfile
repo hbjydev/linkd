@@ -15,6 +15,7 @@ WORKDIR /app
 COPY --from=build /build/dist ./dist
 COPY --from=build /build/package.json /build/package-lock.json ./
 RUN npm install --production
+ADD static ./static
 
 CMD [ "node", "dist" ]
 
