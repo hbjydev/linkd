@@ -4,9 +4,11 @@ import Router from '@koa/router';
 import cors from '@koa/cors';
 import bodyParser from 'koa-bodyparser';
 import { nanoid } from 'nanoid';
-import {createConnection} from 'typeorm';
+import { createConnection } from 'typeorm';
 import URL from './url';
 import { LinkdNotFound, LinkdAlreadyExists } from './errors';
+import { createReadStream } from 'fs';
+import { join } from 'path';
 
 const app = new Koa();
 const port = parseInt(process.env.PORT ?? '3000', 10);
@@ -28,9 +30,8 @@ const router = new Router();
 // TODO create a more descriptive route
 router
   .get('root', '/', (ctx) => {
-    ctx.body = {
-      message: 'Welcome to linkd'
-    };
+    ctx.type = 'html';
+    ctx.body = createReadStream(join(__dirname, '..', 'static', 'index.html'));
   })
   .post('new', '/url', async (ctx) => {
     const url = ctx.request.body.url;
@@ -91,7 +92,13 @@ router
       urls[0].hits += 1;
       urls[0].save();
 
-      return ctx.redirect(urls[0].url);
+      let url = urls[0].url;
+
+      if(!url.startsWith('https://') && !url.startsWith('http://')) {
+        url = `https://${url}`;
+      }
+
+      return ctx.redirect(url);
     } catch (e) {
       let message = 'Whoops! Something went wrong on our end!';
       if (e instanceof LinkdNotFound) {

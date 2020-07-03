@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linkd</title>
+  <style>
+    * { box-sizing: border-box }
+    body {
+      display: flex;
+      width: 100vw;
+      min-height: 100vh;
+      margin: 0;
+      align-items: center;
+      justify-content: center;
+      background: #101010;
+      color: #C0C0C0;
+      font-family: monospace;
+    }
+    h1 { font-size: 48px }
+    a {
+      font-size: 18px; margin-top: 16px;
+      color: #C0C0C0;
+      text-decoration: none;
+    }
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 660px;
+      margin: 1rem;
+      width: 100%;
+    }
+    form { width: 100%; }
+    input {
+      width: 100%;
+      padding: 16px;
+      font-size: 21px;
+      outline: none;
+      background: #5F6264;
+      border: none;
+      border-radius: 8px;
+      color: #C0C0C0;
+    }
+    input::placeholder {
+      color: #8F9192;
+    }
+    input.invalid {
+      border: 3px solid lightcoral;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Linkd</h1>
+    <form id="mainForm">
+      <input type="text" placeholder="enter a url to shorten and SMASH enter" />
+    </form>
+    <a id="outputUrl"></a>
+  </main>
+  <script>
+    const form = document.getElementById('mainForm');
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      const target = e.target[0];
+      if (
+        !target.value.match(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/gm)
+      ) {
+        target.classList.add('invalid');
+        throw 'Failed validation check';
+      } else {
+        target.classList.remove('invalid');
+      }
+
+      const res = await fetch('/url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url: target.value })
+      });
+
+      if (!res.ok) {
+        document.getElementById('outputUrl').innerText =
+          'Something went wrong!';
+        throw 'Error completing the request.';
+      }
+
+      const json = await res.json();
+
+      document.getElementById('outputUrl').innerText = json.url;
+      document.getElementById('outputUrl').href = json.url;
+    };
+
+    form.addEventListener('submit', handleSubmit);
+  </script>
+</body>
+</html>
